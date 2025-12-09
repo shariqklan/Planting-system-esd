@@ -48,10 +48,16 @@ public class AuthService {
         user.setPhone(request.getPhone());
         user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         
-        // Set role
-        try {
-            user.setRole(Role.valueOf(request.getRole().toUpperCase()));
-        } catch (IllegalArgumentException e) {
+        // Set role - handle null/blank values properly
+        if (request.getRole() != null && !request.getRole().isBlank()) {
+            try {
+                user.setRole(Role.valueOf(request.getRole().toUpperCase()));
+            } catch (IllegalArgumentException e) {
+                // Invalid role provided: fallback to VOLUNTEER
+                user.setRole(Role.VOLUNTEER);
+            }
+        } else {
+            // No role provided: default to VOLUNTEER
             user.setRole(Role.VOLUNTEER);
         }
 

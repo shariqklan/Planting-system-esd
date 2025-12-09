@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.Plantation_system.dto.OrganizationDTO;
 import com.example.Plantation_system.service.ActivityLogService;
 import com.example.Plantation_system.service.OrganizationService;
+import com.example.Plantation_system.repositories.UserRepository;
 
 import jakarta.validation.Valid;
 
@@ -35,6 +36,9 @@ public class OrganizationController {
 
     @Autowired
     private ActivityLogService activityLogService;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @PostMapping
     public ResponseEntity<?> createOrganization(
@@ -139,6 +143,26 @@ public class OrganizationController {
     }
 
     private Long extractUserIdFromAuthentication(Authentication authentication) {
-        return 1L; // Placeholder - should be extracted from token
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new com.example.Plantation_system.exceptions.UnauthorizedException("Not authenticated");
+        }
+
+        Object principal = authentication.getPrincipal();
+        String username = null;
+        if (principal instanceof org.springframework.security.core.userdetails.UserDetails) {
+            username = ((org.springframework.security.core.userdetails.UserDetails) principal).getUsername();
+        } else if (principal instanceof String) {
+            username = (String) principal;
+        }
+
+        if (username == null) {
+            throw new com.example.Plantation_system.exceptions.UnauthorizedException("Unable to extract username from authentication");
+        }
+
+        final String uname = username;
+        com.example.Plantation_system.entities.User user = userRepository.findByUsername(uname)
+            .orElseThrow(() -> new com.example.Plantation_system.exceptions.ResourceNotFoundException("User not found: " + uname));
+
+        return user.getUserId();
     }
 }
