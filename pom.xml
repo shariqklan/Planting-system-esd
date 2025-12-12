@@ -105,10 +105,10 @@
 			<artifactId>spring-boot-starter-validation</artifactId>
 		</dependency>
 
-		<dependency>
-			<groupId>org.hibernate.orm</groupId>
-			<artifactId>hibernate-core</artifactId>
-		</dependency>
+		<!-- Removed explicit hibernate-core dependency to let Spring Boot manage Hibernate versions -->
+
+		<!-- Springdoc OpenAPI (Swagger for Spring Boot 3) -->
+		<!-- (Swagger removed for evaluation) -->
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

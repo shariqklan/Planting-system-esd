@@ -78,7 +78,7 @@ public class AuthService {
                 .orElseThrow(() -> new AuthenticationException("User not found") {});
 
         // Generate JWT token
-        String token = jwtUtil.generateTokenWithRole(user.getUsername(), user.getRole().name());
+        String token = jwtUtil.generateTokenWithRoleAndUserId(user.getUsername(), user.getRole().name(), user.getUserId());
 
         // Return login response
         return new LoginResponse(

@@ -19,11 +19,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import com.example.Plantation_system.dto.VolunteerProfileDTO;
 import com.example.Plantation_system.service.ActivityLogService;
 import com.example.Plantation_system.service.VolunteerProfileService;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 @RestController
@@ -36,6 +39,9 @@ public class VolunteerProfileController {
 
     @Autowired
     private ActivityLogService activityLogService;
+
+    @Autowired
+    private com.example.Plantation_system.security.JwtUtil jwtUtil;
 
     @PostMapping
     public ResponseEntity<?> createVolunteerProfile(
@@ -188,6 +194,30 @@ public class VolunteerProfileController {
     }
 
     private Long extractUserIdFromAuthentication(Authentication authentication) {
-        return 1L; // Placeholder - should be extracted from token
+        String token = extractTokenFromRequest();
+        if (token != null && !token.isEmpty()) {
+            try {
+                return jwtUtil.extractUserId(token);
+            } catch (Exception e) {
+                throw new RuntimeException("Could not extract userId from token: " + e.getMessage());
+            }
+        }
+        throw new RuntimeException("No JWT token found in request");
+    }
+
+    private String extractTokenFromRequest() {
+        try {
+            ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+            if (attrs != null) {
+                HttpServletRequest request = attrs.getRequest();
+                String header = request.getHeader("Authorization");
+                if (header != null && header.startsWith("Bearer ")) {
+                    return header.substring(7);
+                }
+            }
+        } catch (Exception e) {
+            // Log and continue
+        }
+        return null;
     }
 }
